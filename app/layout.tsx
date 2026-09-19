@@ -33,8 +33,13 @@ const anekTamil = Anek_Tamil({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
-  title: { default: `${site.name}: ${site.tagline}`, template: `%s | ${site.name}` },
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+  ),
+  title: {
+    default: `${site.name}: ${site.tagline}`,
+    template: `%s | ${site.name}`,
+  },
   description: site.description,
   openGraph: {
     title: site.name,
@@ -51,7 +56,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${outfit.variable} ${outfitOutline.variable} ${anekTamil.variable}`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${outfit.variable} ${outfitOutline.variable} ${anekTamil.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: preloaderScript }} />
       </head>

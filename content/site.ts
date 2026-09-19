@@ -16,13 +16,31 @@ export const site = {
     "Kop Karuthu is an independent fan podcast. We're not affiliated with, endorsed by or connected to Liverpool Football Club.",
 };
 
-export type Social = { label: string; handle: string; href: string; placeholder?: boolean };
+export type Social = {
+  label: string;
+  handle: string;
+  href: string;
+  placeholder?: boolean;
+};
 
 export const socials: Social[] = [
-  { label: "YouTube", handle: "@kopkaruthu", href: "https://www.youtube.com/@kopkaruthu" },
-  { label: "X", handle: "@KopKaruthu_lfc", href: "https://x.com/KopKaruthu_lfc" },
+  {
+    label: "YouTube",
+    handle: "@kopkaruthu",
+    href: "https://www.youtube.com/@kopkaruthu",
+  },
+  {
+    label: "X",
+    handle: "@KopKaruthu_lfc",
+    href: "https://x.com/KopKaruthu_lfc",
+  },
   // PLACEHOLDER — replace with the real handle
-  { label: "Instagram", handle: "@kopkaruthu", href: "https://www.instagram.com/", placeholder: true },
+  {
+    label: "Instagram",
+    handle: "@kopkaruthu",
+    href: "https://www.instagram.com/",
+    placeholder: true,
+  },
 ];
 
 export const nav = [
@@ -86,7 +104,7 @@ export const hosts = [
     role: "Co-host",
     // PLACEHOLDER bio & take
     bio: "Co-host of Kop Karuthu. Placeholder bio: how the Liverpool story started, the favourite era, and the match that made it stick.",
-    take: "Placeholder: Gowtham's hottest take goes here.",
+    take: "Cody Gakpo is the GOAT",
   },
   {
     key: "seshadhri",
@@ -94,7 +112,7 @@ export const hosts = [
     role: "Co-host",
     // PLACEHOLDER bio & take
     bio: "Co-host of Kop Karuthu and keeper of the prediction league. Placeholder bio waiting on the real story.",
-    take: "Placeholder: Seshadhri's hottest take goes here.",
+    take: "Araujo deserves to win the Ballon d'Or",
   },
 ] as const;
 
@@ -135,7 +153,11 @@ export const timeline = [
  * Worldwide Kop globe markers — illustrative, edit as you like.
  * [latitude, longitude]
  */
-export const globeMarkers: { label: string; location: [number, number]; size: number }[] = [
+export const globeMarkers: {
+  label: string;
+  location: [number, number];
+  size: number;
+}[] = [
   { label: "Chennai", location: [13.08, 80.27], size: 0.1 },
   { label: "Madurai", location: [9.93, 78.12], size: 0.05 },
   { label: "Coimbatore", location: [11.02, 76.96], size: 0.05 },
