@@ -18,10 +18,13 @@ gsap.registerPlugin(ScrollTrigger);
 export function ScrollEffects() {
   const pathname = usePathname();
 
-  // Lenis — lives for the whole session
+  // The tactics board owns the viewport and never scrolls, so it opts out
+  const noScroll = pathname.startsWith("/tactics");
+
+  // Lenis — lives for as long as the page actually scrolls
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) return;
+    if (reduce || noScroll) return;
 
     const lenis = new Lenis({ lerp: 0.1, wheelMultiplier: 1, anchors: { offset: -80 } });
     setLenis(lenis);
@@ -47,7 +50,7 @@ export function ScrollEffects() {
       setLenis(null);
       document.documentElement.classList.remove("js-theme");
     };
-  }, []);
+  }, [noScroll]);
 
   // Per-page: scroll to top + theme triggers (parallax lives in useParallax)
   useEffect(() => {

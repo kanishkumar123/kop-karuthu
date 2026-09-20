@@ -8,6 +8,8 @@
 
 export type Img = {
   src: string;
+  /** optional smaller copy used for the WebGL hero texture */
+  texture?: string;
   alt: string;
   /** CSS object-position, e.g. "50% 30%" */
   focal?: string;
@@ -22,11 +24,13 @@ const u = (id: string, w = 1800) =>
 export const heroSlides: Img[] = [
   {
     src: "/images/hero/parade-bus.webp",
+    texture: "/images/hero/parade-bus-1600.webp",
     alt: "Liverpool's open-top WINNERS bus moving through red flare smoke and flags",
     focal: "50% 42%",
   },
   {
     src: "/images/hero/parade-players.webp",
+    texture: "/images/hero/parade-players-1600.webp",
     alt: "Liverpool players celebrating on top of the parade bus",
     focal: "50% 30%",
   },

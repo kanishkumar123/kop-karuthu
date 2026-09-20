@@ -25,7 +25,7 @@ export function FormationBoard({ squad, xi, onOpen }: { squad: Player[]; xi: Las
       const mm = gsap.matchMedia();
       mm.add("(prefers-reduced-motion: no-preference)", () => {
         const tl = gsap.timeline({
-          scrollTrigger: { trigger: root.current, start: "top top", end: "+=140%", scrub: 0.7, pin: true },
+          scrollTrigger: { trigger: root.current, start: "top top", end: "+=140%", scrub: 0.7, pin: true, anticipatePin: 1, fastScrollEnd: true },
         });
         tl.from(".fb-line", { strokeDashoffset: 1000, duration: 1, ease: "none" })
           .from(".fb-dot", { y: -140, scale: 0, opacity: 0, stagger: 0.06, duration: 0.6, ease: "back.out(2)" }, "-=0.4")

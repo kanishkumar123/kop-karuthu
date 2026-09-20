@@ -9,6 +9,7 @@ import { PlayerCard } from "@/components/squad/PlayerCard";
 import { PlayerModal } from "@/components/squad/PlayerModal";
 import { FormationBoard } from "@/components/squad/FormationBoard";
 import { StatLeaders } from "@/components/squad/StatLeaders";
+import { Refreshing } from "@/components/ui/Refreshing";
 import { cn } from "@/lib/utils";
 
 const filters: (Position | "ALL")[] = ["ALL", "GK", "DEF", "MID", "FWD"];
@@ -68,13 +69,19 @@ export function SquadRoster({ squad, xi }: { squad: Squad; xi: LastXI | null }) 
         </div>
       </div>
 
-      {xi && <FormationBoard squad={players} xi={xi} onOpen={openPlayer} />}
+      {xi ? (
+        <FormationBoard squad={players} xi={xi} onOpen={openPlayer} />
+      ) : (
+        <div className="mx-auto mt-14 max-w-[1500px] px-4 md:px-8">
+          <Refreshing what="the last league XI" />
+        </div>
+      )}
 
       {/* Roster */}
       <div className="mx-auto max-w-[1500px] px-4 md:px-8">
-        {/* sticky filter is scoped to the grid so it lets go before "Leading the way" */}
+        {/* static: it used to follow the scroll, which read as janky */}
         <div>
-        <div className="sticky top-[5.5rem] z-30 -mx-2 flex overflow-x-auto px-2 py-2 no-scrollbar">
+        <div className="-mx-2 flex overflow-x-auto px-2 py-2 no-scrollbar">
           <div role="tablist" aria-label="Filter by position" className="relative flex gap-1 rounded-full bg-night/85 p-1 ring-1 ring-paper/10 backdrop-blur">
             {filters.map((f) => (
               <button

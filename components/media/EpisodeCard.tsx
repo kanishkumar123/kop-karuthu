@@ -83,8 +83,8 @@ export function EpisodeCard({ video, no, className, size = "md" }: { video: Vide
 
         {/* perforation */}
         <div className="relative -mx-5 mt-4 border-t-2 border-dashed border-ink/15">
-          <span className="absolute -left-2 -top-2 size-4 rounded-full bg-[var(--bg)]" />
-          <span className="absolute -right-2 -top-2 size-4 rounded-full bg-[var(--bg)]" />
+          <span className="absolute -left-2 -top-2 size-4 rounded-full bg-[var(--s-bg)]" />
+          <span className="absolute -right-2 -top-2 size-4 rounded-full bg-[var(--s-bg)]" />
         </div>
         <div className="mt-3 flex items-center justify-between text-[13px] text-ink/60">
           <span>{video.views != null ? `${compact(video.views)} views` : "Kop Karuthu"}</span>

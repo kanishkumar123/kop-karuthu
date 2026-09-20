@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import dynamic from "next/dynamic";
-import { useCallback, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { heroSlides } from "@/lib/images";
@@ -21,23 +21,48 @@ export function Hero({ card }: { card: ReactNode }) {
   const motionOk = useMediaQuery("(prefers-reduced-motion: no-preference)");
   const [noGl, setNoGl] = useState(false);
   const onUnsupported = useCallback(() => setNoGl(true), []);
+  const [inkReady, setInkReady] = useState(false);
   const webgl = motionOk && !noGl;
   useParallax(root);
+
+  // Start the WebGL layer only once the intro is done and the browser is idle,
+  // so hydration and the intro animation aren't competing with shader setup.
+  useEffect(() => {
+    if (!webgl || !intro || inkReady) return;
+    const w = window as typeof window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number };
+    const start = () => setInkReady(true);
+    const idle = typeof w.requestIdleCallback === "function";
+    const id = idle ? w.requestIdleCallback!(start, { timeout: 1200 }) : window.setTimeout(start, 300);
+    return () => (idle ? window.cancelIdleCallback(id) : window.clearTimeout(id));
+  }, [webgl, intro, inkReady]);
 
   useGSAP(
     () => {
       if (!intro) return;
+      // Whatever happens, the hero must end up in its final, readable state.
+      const settle = () => gsap.set("[data-hero-in], .hero-kop .ch, .hero-karuthu .ch, .hero-sub, .hero-card", { clearProps: "transform,opacity", opacity: 1 });
+
       const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (reduce) {
-        gsap.set("[data-hero-in]", { opacity: 1 });
+      // If the page didn't start at the top (reload, deep link, back button), the letters
+      // would animate in from outside the viewport and look broken — so just show them.
+      const scrolled = window.scrollY > 80;
+      if (reduce || scrolled) {
+        settle();
         return;
       }
-      const tl = gsap.timeline({ defaults: { ease: "expo.out" } });
+
+      const tl = gsap.timeline({ defaults: { ease: "expo.out" }, onInterrupt: settle });
       tl.fromTo("[data-hero-in]", { opacity: 0 }, { opacity: 1, duration: 0.01 })
         .from(".hero-kop .ch", { yPercent: 110, rotate: 8, duration: 1.2, stagger: 0.07 }, 0)
         .from(".hero-karuthu .ch", { yPercent: -110, duration: 1.2, stagger: 0.045 }, 0.15)
         .from(".hero-sub", { y: 24, opacity: 0, duration: 1, stagger: 0.08 }, 0.6)
         .from(".hero-card", { y: 60, opacity: 0, rotate: 6, duration: 1.3 }, 0.7);
+
+      // Safety net: if the tab was throttled or the timeline stalled, snap to the end.
+      const guard = window.setTimeout(() => {
+        if (!tl.isActive() || tl.progress() < 1) settle();
+      }, 3200);
+      return () => window.clearTimeout(guard);
     },
     { scope: root, dependencies: [intro] },
   );
@@ -52,8 +77,8 @@ export function Hero({ card }: { card: ReactNode }) {
       aria-labelledby="hero-title"
     >
       {/* Background: B&W photos (always) + fluid-ink colour reveal (WebGL) */}
-      <div className="absolute inset-0 -z-10" data-speed="-0.25">
-        <div className="absolute inset-0 scale-110">
+      <div className="absolute inset-0 -z-10" data-speed="-0.12">
+        <div className="absolute inset-0 scale-[1.04]">
           {heroSlides.map((s, i) => (
             <Image
               key={s.src}
@@ -61,6 +86,7 @@ export function Hero({ card }: { card: ReactNode }) {
               alt=""
               fill
               priority={i === 0}
+              loading={i === 0 ? undefined : "lazy"}
               sizes="100vw"
               className={cn(
                 "object-cover grayscale contrast-125 brightness-75",
@@ -71,14 +97,14 @@ export function Hero({ card }: { card: ReactNode }) {
             />
           ))}
           <div className="absolute inset-0 bg-gradient-to-t from-night via-night/30 to-night/50" />
-          {webgl && <HeroInk active={intro} slides={heroSlides} onUnsupported={onUnsupported} />}
+          {webgl && inkReady && <HeroInk active={intro} slides={heroSlides} onUnsupported={onUnsupported} />}
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_18%_88%,rgb(21_10_12/0.8),transparent_55%)]" />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-night to-transparent" />
           <div className="pointer-events-none absolute inset-x-0 top-0 h-56 bg-gradient-to-b from-night/75 to-transparent" />
         </div>
       </div>
 
-      <div data-hero-in className="mx-auto w-full max-w-[1500px] px-4 opacity-0 md:px-8">
+      <div data-hero-in className="mx-auto w-full max-w-[1500px] px-4 md:px-8">
         <div className="grid items-end gap-10 lg:grid-cols-[1fr_380px]">
           <div data-speed="0.12">
             <p className="hero-sub mb-5 flex items-center gap-3 text-[15px] text-paper/80">

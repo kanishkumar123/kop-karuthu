@@ -29,6 +29,8 @@ export function NameMeaning() {
             end: "+=260%",
             scrub: 0.8,
             pin: ".nm-pin",
+            anticipatePin: 1,
+            fastScrollEnd: true,
           },
         });
         tl.from(".nm-kop-photo", { clipPath: "inset(50% 50% 50% 50%)", duration: 1 })

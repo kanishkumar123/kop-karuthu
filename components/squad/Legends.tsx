@@ -54,6 +54,8 @@ export function Legends() {
             start: "top top",
             end: () => `+=${distance()}`,
             pin: true,
+            anticipatePin: 1,
+            fastScrollEnd: true,
             scrub: 0.6,
             invalidateOnRefresh: true,
             onUpdate: (self) => {
@@ -120,7 +122,7 @@ export function Legends() {
 
       {/* Pinned eras reel */}
       <div className="legends-pin relative flex min-h-[100svh] flex-col justify-center overflow-hidden py-12">
-        <div ref={track} className="no-scrollbar flex snap-x snap-mandatory items-start gap-10 overflow-x-auto px-4 md:gap-14 md:px-8">
+        <div ref={track} className="no-scrollbar flex snap-x snap-mandatory items-start gap-10 overflow-x-auto px-4 md:snap-none md:gap-14 md:px-8">
           {eras.map((era, e) => (
             <div key={era.key} className="flex shrink-0 items-start gap-8 md:gap-10">
               <div data-era-start={era.span.slice(0, 4)} className="flex h-[600px] w-[260px] shrink-0 snap-start flex-col justify-between border-l-4 border-kop pl-6 md:w-[300px]">

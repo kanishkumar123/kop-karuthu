@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { getFixtures } from "@/lib/espn";
 import { NextMatchBoard } from "@/components/data/NextMatchBoard";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { Refreshing } from "@/components/ui/Refreshing";
 
 export function NextMatch() {
   return (
@@ -27,9 +28,12 @@ async function Board() {
         <p className="max-w-xl text-2xl font-semibold leading-snug">
           Fixtures aren&rsquo;t loading right now. Check the Live page for the next watchalong.
         </p>
-        <Link href="/live" className="mt-6 inline-block rounded-full bg-kop px-6 py-3 font-semibold text-paper">
-          Go to Live
-        </Link>
+        <div className="mt-6 flex flex-wrap items-center gap-4">
+          <Link href="/live" className="inline-block rounded-full bg-kop px-6 py-3 font-semibold text-paper">
+            Go to Live
+          </Link>
+          <Refreshing what="the fixtures" />
+        </div>
       </div>
     );
   }

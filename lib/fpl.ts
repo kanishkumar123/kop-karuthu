@@ -1,9 +1,10 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { cacheFailure } from "@/lib/cacheFail";
-import { getJerseyNumbers } from "@/lib/espn";
+import { getJerseyNumbers, type LastXI, type LineupPlayer } from "@/lib/espn";
 import { normName } from "@/lib/utils";
 import { squadOverrides } from "@/lib/images";
+import { fetchRetry } from "@/lib/retry";
 
 /**
  * Official Fantasy Premier League API (no key). Premier League stats only.
@@ -64,7 +65,7 @@ export type Squad = { players: Player[]; seasons: string[] };
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 async function fpl<T>(path: string): Promise<T> {
-  const res = await fetch(`${FPL}${path}`, { headers: UA });
+  const res = await fetchRetry(`${FPL}${path}`, { headers: UA });
   if (!res.ok) throw new Error(`fpl ${path} ${res.status}`);
   return res.json() as Promise<T>;
 }
@@ -214,3 +215,71 @@ async function buildSquad(): Promise<Squad | null> {
 }
 
 export const getSquad = () => buildSquad();
+
+/* ───────────── fallback XI (used when ESPN's lineup is unavailable) ───────────── */
+
+/** Spread N outfield players of one line across sensible pitch slots. */
+const LINE_SLOTS: Record<string, Record<number, string[]>> = {
+  DEF: { 3: ["CD-L", "CD", "CD-R"], 4: ["LB", "CD-L", "CD-R", "RB"], 5: ["LWB", "CD-L", "CD", "CD-R", "RWB"] },
+  MID: { 2: ["CM-L", "CM-R"], 3: ["CM-L", "CM", "CM-R"], 4: ["LM", "CM-L", "CM-R", "RM"], 5: ["LM", "CM-L", "CM", "CM-R", "RM"] },
+  FWD: { 1: ["F"], 2: ["CF-L", "CF-R"], 3: ["LW", "F", "RW"], 4: ["LW", "CF-L", "CF-R", "RW"] },
+};
+const slotsFor = (line: "DEF" | "MID" | "FWD", n: number) =>
+  LINE_SLOTS[line][n] ?? Array.from({ length: n }, (_, i) => (i === 0 ? line === "FWD" ? "F" : "CM" : `${line}-${i}`));
+
+/**
+ * Starting XI from the most recent finished Premier League gameweek, straight from
+ * FPL. Less precise than ESPN's real formation (FPL positions are fantasy positions),
+ * but it means the pitch is never empty just because one API had a bad minute.
+ */
+export async function getLastGwXI(): Promise<LastXI | null> {
+  "use cache";
+  cacheTag("fpl-xi");
+  try {
+    const boot = await fpl<any>("/bootstrap-static/");
+    const team = boot.teams.find((t: any) => t.name === "Liverpool");
+    const finished = (boot.events ?? []).filter((e: any) => e.finished);
+    const gw = finished[finished.length - 1];
+    if (!team || !gw) throw new Error("no finished gameweek");
+
+    const [live, fixtures] = await Promise.all([
+      fpl<any>(`/event/${gw.id}/live/`),
+      fpl<any>(`/fixtures/?event=${gw.id}`),
+    ]);
+    const fixture = (fixtures ?? []).find((x: any) => x.team_h === team.id || x.team_a === team.id);
+    if (!fixture) throw new Error("no fixture for Liverpool that week");
+    const home = fixture.team_h === team.id;
+    const oppId = home ? fixture.team_a : fixture.team_h;
+    const opponent = boot.teams.find((t: any) => t.id === oppId)?.name ?? "";
+
+    const byId = new Map<number, any>(boot.elements.map((e: any) => [e.id, e]));
+    const starters = (live.elements ?? [])
+      .filter((e: any) => e.stats?.starts === 1 && byId.get(e.id)?.team === team.id)
+      .map((e: any) => byId.get(e.id));
+
+    const lines: Record<Position, any[]> = { GK: [], DEF: [], MID: [], FWD: [] };
+    for (const p of starters) lines[POS[p.element_type] ?? "MID"].push(p);
+    if (!lines.GK.length && !lines.DEF.length) throw new Error("no starters recorded");
+
+    const players: LineupPlayer[] = [];
+    const push = (p: any, position: string) =>
+      players.push({ name: `${p.first_name} ${p.second_name}`, jersey: p.squad_number ? String(p.squad_number) : null, position, formationPlace: players.length + 1 });
+    lines.GK.slice(0, 1).forEach((p) => push(p, "G"));
+    (["DEF", "MID", "FWD"] as const).forEach((line) => {
+      const slots = slotsFor(line, lines[line].length);
+      lines[line].forEach((p, i) => push(p, slots[i] ?? "CM"));
+    });
+
+    cacheLife("hours");
+    return {
+      opponent,
+      date: fixture.kickoff_time,
+      formation: `${lines.DEF.length}-${lines.MID.length}-${lines.FWD.length}`,
+      venue: home ? "H" : "A",
+      players,
+    };
+  } catch (e) {
+    cacheFailure("fpl last XI", e);
+    return null;
+  }
+}

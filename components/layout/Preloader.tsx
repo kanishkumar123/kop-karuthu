@@ -124,4 +124,6 @@ export function Preloader() {
 }
 
 /** Runs before hydration so returning visitors never see a flash of the intro. */
-export const preloaderScript = `try{if(sessionStorage.getItem("${KEY}")==="1"||matchMedia("(prefers-reduced-motion: reduce)").matches){document.documentElement.classList.add("kk-seen")}}catch(e){}`;
+export const preloaderScript = `try{if(sessionStorage.getItem("${KEY}")==="1"||matchMedia("(prefers-reduced-motion: reduce)").matches){document.documentElement.classList.add("kk-seen")}}catch(e){}
+// A reload used to restore the old scroll position, which left the hero animating half off-screen.
+try{if("scrollRestoration" in history){history.scrollRestoration="manual"}}catch(e){}`;

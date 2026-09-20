@@ -160,7 +160,6 @@ void main() {
 
   // liquid refraction + chromatic aberration only where ink flows
   vec2 uv = vUv - vel * 0.0045 * ink / vec2(uAspect, 1.0);
-  uv = (uv - 0.5) * (1.0 - 0.05 * (1.0 - uReveal)) + 0.5;
   vec2 ca = dir * min(sp, 3.0) * 0.0028 * ink;
 
   vec3 a = sampleCA(tA, uv, uImgA, uFocalA, ca);
@@ -223,7 +222,9 @@ export function HeroInk({ slides, className, active = true, onUnsupported }: Pro
 
     let renderer: Renderer;
     try {
-      renderer = new Renderer({ dpr: Math.min(window.devicePixelRatio, 1.75), alpha: false, antialias: false, depth: false });
+      // big screens already push a lot of pixels; keep the count sane there
+      const dprCap = window.innerWidth > 1600 ? 1.5 : 1.75;
+      renderer = new Renderer({ dpr: Math.min(window.devicePixelRatio, dprCap), alpha: false, antialias: false, depth: false });
     } catch {
       onUnsupported?.();
       return;
@@ -280,7 +281,7 @@ export function HeroInk({ slides, className, active = true, onUnsupported }: Pro
     slides.forEach((s, i) => {
       const img = new Image();
       img.decoding = "async";
-      img.src = s.src;
+      img.src = s.texture ?? s.src;
       img.onload = () => {
         textures[i].image = img;
         sizes[i].set(img.naturalWidth, img.naturalHeight);

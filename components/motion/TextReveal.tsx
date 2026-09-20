@@ -27,7 +27,7 @@ export function TextReveal({ text, className }: { text: string; className?: stri
             opacity: 1,
             stagger: 0.1,
             ease: "none",
-            scrollTrigger: { trigger: root.current, start: "top top", end: "+=180%", scrub: true, pin: true },
+            scrollTrigger: { trigger: root.current, start: "top top", end: "+=180%", scrub: true, pin: true, anticipatePin: 1, fastScrollEnd: true },
           },
         );
       });

@@ -1,6 +1,7 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { cacheFailure } from "@/lib/cacheFail";
+import { fetchRetry } from "@/lib/retry";
 
 /** football-data.org v4 — only used for Liverpool's Premier League table position. */
 const API = "https://api.football-data.org/v4";
@@ -13,7 +14,7 @@ async function fetchTable(): Promise<Table | null> {
   "use cache";
   cacheTag("pl-table");
   try {
-    const res = await fetch(`${API}/competitions/PL/standings`, {
+    const res = await fetchRetry(`${API}/competitions/PL/standings`, {
       headers: { "X-Auth-Token": process.env.FOOTBALL_DATA_API_KEY ?? "" },
     });
     if (!res.ok) throw new Error(`football-data standings ${res.status}`);

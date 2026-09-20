@@ -48,6 +48,7 @@ export const nav = [
   { href: "/episodes", label: "Episodes" },
   { href: "/live", label: "Live" },
   { href: "/squad", label: "Squad" },
+  { href: "/tactics", label: "Tactics" },
   { href: "/about", label: "About" },
 ] as const;
 

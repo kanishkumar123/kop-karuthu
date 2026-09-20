@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { getSquad } from "@/lib/fpl";
+import { getSquad, getLastGwXI } from "@/lib/fpl";
 import { getLastLeagueXI } from "@/lib/espn";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { SquadRoster } from "@/components/squad/SquadRoster";
 import { Legends } from "@/components/squad/Legends";
 import { VelocityMarquee } from "@/components/motion/VelocityMarquee";
+import { Refreshing } from "@/components/ui/Refreshing";
 
 export const metadata: Metadata = {
   title: "Squad & legends",
@@ -35,12 +36,15 @@ export default function SquadPage() {
 }
 
 async function Roster() {
-  const [squad, xi] = await Promise.all([getSquad(), getLastLeagueXI()]);
+  // ESPN gives the real formation; if it blips, fall back to FPL so the pitch is never empty
+  const [squad, espnXi] = await Promise.all([getSquad(), getLastLeagueXI()]);
+  const xi = espnXi ?? (await getLastGwXI());
   if (!squad) {
     return (
       <div className="mx-auto max-w-[1500px] px-4 md:px-8">
         <div className="rounded-[18px] bg-night-2 p-8 ring-1 ring-paper/10 md:p-12">
           <p className="max-w-xl text-2xl font-semibold leading-snug">The squad list isn&rsquo;t loading right now. It usually comes back within a few minutes. Try again shortly.</p>
+          <Refreshing what="the squad" className="mt-6" />
         </div>
       </div>
     );

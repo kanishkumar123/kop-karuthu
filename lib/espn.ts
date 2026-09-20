@@ -3,6 +3,7 @@ import { cacheLife, cacheTag } from "next/cache";
 import { cacheFailure } from "@/lib/cacheFail";
 import { getTable, type Table } from "@/lib/football";
 import { normName } from "@/lib/utils";
+import { fetchRetry } from "@/lib/retry";
 
 /**
  * ESPN public site API (no key). Liverpool = team 364.
@@ -30,7 +31,7 @@ export type LastXI = { opponent: string; date: string; formation: string | null;
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 async function espn<T>(path: string): Promise<T> {
-  const res = await fetch(`${SITE}${path}`, { headers: { "User-Agent": "Mozilla/5.0 (KopKaruthu site)" } });
+  const res = await fetchRetry(`${SITE}${path}`, { headers: { "User-Agent": "Mozilla/5.0 (KopKaruthu site)" } });
   if (!res.ok) throw new Error(`espn ${path} ${res.status}`);
   return res.json() as Promise<T>;
 }

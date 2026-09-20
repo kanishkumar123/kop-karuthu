@@ -1,6 +1,7 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { cacheFailure } from "@/lib/cacheFail";
+import { fetchRetry } from "@/lib/retry";
 
 const API = "https://www.googleapis.com/youtube/v3";
 
@@ -36,7 +37,7 @@ function key() {
 
 async function yt<T>(path: string, params: Record<string, string>): Promise<T> {
   const qs = new URLSearchParams({ ...params, key: key() });
-  const res = await fetch(`${API}/${path}?${qs}`);
+  const res = await fetchRetry(`${API}/${path}?${qs}`);
   if (!res.ok) throw new Error(`YouTube ${path} ${res.status}`);
   return res.json() as Promise<T>;
 }
